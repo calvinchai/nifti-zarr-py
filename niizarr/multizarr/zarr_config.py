@@ -1,14 +1,14 @@
 """Configuration related to output Zarr Archive."""
 from dataclasses import field
 from typing import List, Literal, Optional, Union
-from pydantic import dataclasses 
-from ._typing import TypeAlias
+
+from ._typing import TypeAlias, dataclass
 
 
 ZarrDriver: TypeAlias = Literal["zarr-python", "tensorstore", "zarrita"]
 ZarrVersion: TypeAlias = Literal[2,3]
 
-@dataclasses.dataclass
+@dataclass
 class ZarrConfig:
     """
     Configuration related to output Zarr Archive.
