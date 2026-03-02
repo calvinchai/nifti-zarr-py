@@ -22,10 +22,9 @@ from ..abc import ZarrArray, ZarrArrayConfig, ZarrGroup
 from ..helpers import _compute_zarr_layout
 from ..zarr_config import ZarrConfig
 
-if TYPE_CHECKING:
-    from zarr.core.array import CompressorsLike
-    from zarr.core.chunk_key_encodings import ChunkKeyEncodingLike, ChunkKeyEncodingParams
-    from .._typing import Unpack
+from zarr.core.array import CompressorsLike
+from zarr.core.chunk_key_encodings import ChunkKeyEncodingLike, ChunkKeyEncodingParams
+from .._typing import Unpack
 
 class ZarrPythonArray(ZarrArray):
     """Zarr Array implementation using the zarr-python library."""
