@@ -8,3 +8,5 @@ except (ImportError, ModuleNotFoundError):
 from ._header import bin2nii  # noqa: F401
 from ._nii2zarr import nii2zarr, nii2json, write_nifti_header, write_ome_metadata  # noqa: F401
 from ._zarr2nii import zarr2nii, default_nifti_header  # noqa: F401
+from . import multizarr
+from .multizarr.zarr_config import ZarrConfig
