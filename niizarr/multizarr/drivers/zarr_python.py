@@ -11,20 +11,21 @@ from typing import (
     Sequence,
     Tuple,
     Union,
-    Unpack,
 )
+from typing import TYPE_CHECKING
 
 import numpy as np
 import zarr
-import zarr.codecs
 from numpy.typing import ArrayLike, DTypeLike
-from zarr.core.array import CompressorsLike
-from zarr.core.chunk_key_encodings import ChunkKeyEncodingLike, ChunkKeyEncodingParams
 
 from ..abc import ZarrArray, ZarrArrayConfig, ZarrGroup
 from ..helpers import _compute_zarr_layout
 from ..zarr_config import ZarrConfig
 
+if TYPE_CHECKING:
+    from zarr.core.array import CompressorsLike
+    from zarr.core.chunk_key_encodings import ChunkKeyEncodingLike, ChunkKeyEncodingParams
+    from .._typing import Unpack
 
 class ZarrPythonArray(ZarrArray):
     """Zarr Array implementation using the zarr-python library."""
@@ -208,13 +209,12 @@ class ZarrPythonGroup(ZarrGroup):
         compressor = zarr_config.compressor
         compressor_opt = zarr_config.compressor_opt
         chunk, shard = _compute_zarr_layout(shape, dtype, zarr_config)
-        # TODO: implement fill_value
         opt = {
             "chunks": chunk,
             "shards": shard,
             "order": zarr_config.order,
             "dtype": np.dtype(dtype).str,
-            "fill_value": None,
+            "fill_value": zarr_config.fill_value,
             "compressors": _make_compressor(
                 compressor, zarr_config.zarr_version, **compressor_opt
             ),

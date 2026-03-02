@@ -1,14 +1,12 @@
 """Configuration related to output Zarr Archive."""
 from dataclasses import field
-from typing import (
-    List, Literal,
-    TypeAlias,
-)
+from typing import List, Literal, Optional, Union
+from pydantic import dataclasses 
+from ._typing import TypeAlias
 
-from pydantic import dataclasses
 
-DriverLike: TypeAlias = Literal["zarr-python", "tensorstore", "zarrita"]
-
+ZarrDriver: TypeAlias = Literal["zarr-python", "tensorstore", "zarrita"]
+ZarrVersion: TypeAlias = Literal[2,3]
 
 @dataclasses.dataclass
 class ZarrConfig:
@@ -70,23 +68,25 @@ class ZarrConfig:
         library used for Zarr IO Operation
     """
 
-    zarr_version: Literal[2, 3] = 3
+    zarr_version: ZarrVersion = 3
     chunk: List[int] = (128,)
     chunk_channels: bool = False
     chunk_time: bool = True
-    shard:  Literal["auto", "none"] | List | None= None
+    shard:  Union[Literal['auto'], List[int], None] = None
     shard_channels: bool = False
     shard_time: bool = False
     dimension_separator: Literal[".", "/"] = "/"
     order: Literal["C", "F"] = "C"
     compressor: Literal["blosc", "zlib", "none"] = "blosc"
-    compressor_opt: dict[str, float | str] = field(default_factory=dict)
+    compressor_opt: dict = field(default_factory=dict)
+    # Default fill value for created arrays; if None, backend defaults are used.
+    fill_value: Optional[object] = None
     no_time: bool = False
-    no_pyramid_axis: Literal["x", "y", "z"] | None = None
+    no_pyramid_axis: Union[str, int, None] = None
     levels: int = -1
     ome_version: Literal["0.4", "0.5"] = "0.4"
     overwrite: bool = False
-    driver: DriverLike = "zarr-python"
+    driver: ZarrDriver = "zarr-python"
 
     def __post_init__(self) -> None:
         """

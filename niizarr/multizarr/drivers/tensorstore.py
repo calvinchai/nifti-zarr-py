@@ -1,6 +1,5 @@
 """TensorStore driver for Zarr arrays and groups."""
 import json
-import os
 from numbers import Number
 from os import PathLike
 from typing import (
@@ -10,8 +9,8 @@ from typing import (
     Sequence,
     Tuple,
     Union,
-    Unpack,
 )
+
 from urllib.parse import urlparse
 
 import numpy as np
@@ -24,6 +23,7 @@ from ..attributes import Attributes
 from ..helpers import auto_shard_size, fix_shard_chunk
 from ..metadata import GroupMetadata
 from ..zarr_config import ZarrConfig
+from .._typing import Unpack
 
 
 class ZarrTSArray(ZarrArray):
@@ -327,7 +327,7 @@ class ZarrTSGroup(ZarrGroup):
             }
             out = {}
             for k, v in d.items():
-                if k in ("chunk_key_encoding", "fill_value"):
+                if k in ("chunk_key_encoding",):
                     # explicitly unsupported/ignored
                     continue
                 out[mapping.get(k, k)] = v
@@ -337,12 +337,15 @@ class ZarrTSGroup(ZarrGroup):
         # Start with defaults from zarr_config (if provided)
         base: dict = {}
         if zarr_config is not None:
-            base = _normalize_keys({
-                "chunk": getattr(zarr_config, "chunk", None),
-                "shard": getattr(zarr_config, "shard", None),
-                "compressor": getattr(zarr_config, "compressor", None),
-                "compressor_opt": getattr(zarr_config, "compressor_opt", None),
-            })
+            base = _normalize_keys(
+                {
+                    "chunk": getattr(zarr_config, "chunk", None),
+                    "shard": getattr(zarr_config, "shard", None),
+                    "compressor": getattr(zarr_config, "compressor", None),
+                    "compressor_opt": getattr(zarr_config, "compressor_opt", None),
+                    "fill_value": getattr(zarr_config, "fill_value", None),
+                }
+            )
 
         # Normalize kwargs and make them override zarr_config-provided defaults
         kw = _normalize_keys(kwargs)
@@ -412,7 +415,7 @@ def make_compressor_v3(name: str | None, **prm: dict) -> dict:
     return {"name": name, "configuration": prm}
 
 
-def make_kvstore(path: str | os.PathLike) -> dict:
+def make_kvstore(path: Union[str, PathLike]) -> dict:
     """Transform a URI into a kvstore JSON object."""
     path = UPath(path)
     if path.protocol in ("file", ""):
@@ -501,7 +504,7 @@ def default_write_config(
     path: str | PathLike[str],
     shape: list[int],
     dtype: np.dtype | str,
-    chunk: list[int] = [32],
+    chunk: list[int] = [128],
     shard: list[int] | Literal["auto"] | None = None,
     compressor: str = "blosc",
     compressor_opt: dict | None = None,

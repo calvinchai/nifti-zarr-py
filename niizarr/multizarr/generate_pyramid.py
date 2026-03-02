@@ -1,5 +1,7 @@
 """Functions related to generation of downsampled layers in ome-zarr."""
 
+from __future__ import annotations
+
 import logging
 import math
 from typing import Callable, Optional, Sequence

@@ -2,6 +2,7 @@
 
 import warnings
 
+from .zarr_config import ZarrConfig, ZarrDriver, ZarrVersion
 from .abc import ZarrArray, ZarrGroup, ZarrNode
 from .factory import from_config, open_array, open_group
 

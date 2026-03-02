@@ -1,5 +1,7 @@
 """Abstract base classes for ZarrIO interfaces."""
 
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from numbers import Number
@@ -13,15 +15,22 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    TypeAlias,
     TypedDict,
     Union,
-    Unpack,
 )
 
 import niizarr
 import numpy as np
-import tqdm
+from ._typing import TypeAlias, Unpack
+try:  # tqdm is optional; fall back to no-op progress if missing
+    import tqdm  # type: ignore[import]
+except ImportError:  # pragma: no cover
+    class _TqdmModule:
+        @staticmethod
+        def tqdm(iterable=None, *args, **kwargs):
+            return iterable if iterable is not None else range(0)
+
+    tqdm = _TqdmModule()  # type: ignore[assignment]
 from dask import array as da
 from dask.diagnostics import ProgressBar
 from nibabel import Nifti1Header, Nifti2Header
@@ -34,7 +43,7 @@ from .generate_pyramid import (
 )
 from .zarr_config import ZarrConfig
 
-NiftiHeader: TypeAlias = Nifti1Header | Nifti2Header
+NiftiHeader: TypeAlias = Union[Nifti1Header, Nifti2Header]
 
 
 class ZarrArrayConfig(TypedDict):

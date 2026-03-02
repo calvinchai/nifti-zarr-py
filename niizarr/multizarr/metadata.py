@@ -13,8 +13,7 @@ from typing import Any, Literal, Self, Sequence
 
 from upath import UPath
 
-JSON = Any
-
+from ._typing import JSON
 
 @dataclass(frozen=True)
 class Metadata:

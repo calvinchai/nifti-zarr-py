@@ -1,17 +1,20 @@
 """Factory module for creating/opening Zarr Nodes with different drivers."""
+
+from __future__ import annotations
+
 import importlib
 import warnings
 from os import PathLike
-from typing import Literal
+from typing import Literal, Optional, Union
 
 from .abc import ZarrGroup, ZarrNode
-from .zarr_config import DriverLike, ZarrConfig
+from .zarr_config import ZarrDriver, ZarrConfig
 
 
 class UnsupportedDriverError(ValueError):
     """Exception raised when an unsupported driver is specified."""
 
-    def __init__(self, driver: DriverLike | str) -> None:
+    def __init__(self, driver: Union[ZarrDriver, str]) -> None:
         super().__init__(f"Unsupported driver: {driver}")
         self.driver = driver
 
@@ -69,10 +72,10 @@ _register_available_drivers()
 
 
 def open_array(
-    path: str | PathLike[str],
+    path: Union[str, PathLike[str]],
     mode: Literal["r", "r+", "a", "w", "w-"] = "a",
     zarr_version: Literal[2, 3] = 3,
-    driver: DriverLike | None = None,
+    driver: Optional[ZarrDriver] = None,
 ) -> ZarrNode:
     """Open a Zarr Node (Array or Group) based on the specified driver."""
     if driver is None:
@@ -84,10 +87,10 @@ def open_array(
 
 
 def open_group(
-    path: str | PathLike[str],
+    path: Union[str, PathLike[str]],
     mode: Literal["r", "r+", "a", "w", "w-"] = "a",
     zarr_version: Literal[2, 3] = 3,
-    driver: DriverLike | None = None,
+    driver: Optional[ZarrDriver] = None,
 ) -> ZarrGroup:
     """Open a Zarr Group based on the specified driver."""
     if driver is None:
@@ -98,7 +101,7 @@ def open_group(
     return group_cls.open(path, mode, zarr_version=zarr_version)
 
 
-def from_config(out: str | PathLike[str], zarr_config: ZarrConfig) -> ZarrGroup:
+def from_config(out: Union[str, PathLike[str]], zarr_config: ZarrConfig) -> ZarrGroup:
     """Create a ZarrGroup from a ZarrConfig."""
     group_cls = _DRIVER_GROUP.get(zarr_config.driver)
     if group_cls is None:
