@@ -110,7 +110,8 @@ def _compute_zarr_layout(
             ]
         shard = tuple(M[i] * chunk_spatial[i] for i in range(dims))
 
-    shard = shard_tc + shard + shard[-1:] * max(0, 3 - len(shard))
+    shard = shard_tc + tuple(shard + shard[-1:] * max(0, 3 - len(shard)))
+
     return chunk, shard
 
 

@@ -226,7 +226,7 @@ class ZarrPythonGroup(ZarrGroup):
         if chunk_key_encoding:
             opt["chunk_key_encoding"] = chunk_key_encoding
         arr = self._zgroup.create_array(name=name, shape=shape, **opt)
-        if data:
+        if data is not None:
             arr[:] = data
         return ZarrPythonArray(arr)
 
