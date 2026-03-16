@@ -50,25 +50,36 @@ def _import_symbol(path: str) -> type:
         raise ImportError(f"Cannot import '{attr}' from '{mod_path}'") from e
 
 
-def _register_available_drivers() -> None:
-    """Populate _DRIVER_ARRAY and _DRIVER_GROUP with available drivers."""
-    for name, (probe_mod, array_path, group_path) in _DRIVERS.items():
-        if importlib.util.find_spec(probe_mod) is None:
-            warnings.warn(
-                f"{name} driver not available: missing dependency '{probe_mod}'.")
-            continue
-        try:
-            arr_cls = _import_symbol(array_path)
-            grp_cls = _import_symbol(group_path)
-        except Exception as e:
-            # If the driver module imports but its own deps fail, surface that clearly.
-            warnings.warn(f"{name} driver failed to load: {e}")
-            continue
-        _DRIVER_ARRAY[name] = arr_cls
-        _DRIVER_GROUP[name] = grp_cls
+def _ensure_driver(driver_name: ZarrDriver) -> None:
+    """Load and register a single driver if not already registered."""
+    if _DRIVER_ARRAY.get(driver_name) is not None:
+        return
+    entry = _DRIVERS.get(driver_name)
+    if entry is None:
+        return
+    probe_mod, array_path, group_path = entry
+    if importlib.util.find_spec(probe_mod) is None:
+        warnings.warn(
+            f"{driver_name} driver not available: missing dependency '{probe_mod}'."
+        )
+        return
+    try:
+        arr_cls = _import_symbol(array_path)
+        grp_cls = _import_symbol(group_path)
+    except Exception as e:
+        warnings.warn(f"{driver_name} driver failed to load: {e}")
+        return
+    _DRIVER_ARRAY[driver_name] = arr_cls
+    _DRIVER_GROUP[driver_name] = grp_cls
 
 
-_register_available_drivers()
+def _get_default_driver() -> ZarrDriver:
+    """Return the first available driver by trying each in _DRIVERS order."""
+    for name in _DRIVERS:
+        _ensure_driver(name)
+        if _DRIVER_ARRAY.get(name) is not None:
+            return name
+    raise UnsupportedDriverError("No driver available (zarr-python or tensorstore)")
 
 
 def open_array(
@@ -79,7 +90,8 @@ def open_array(
 ) -> ZarrNode:
     """Open a Zarr Node (Array or Group) based on the specified driver."""
     if driver is None:
-        driver = next(iter(_DRIVER_ARRAY))
+        driver = _get_default_driver()
+    _ensure_driver(driver)
     array_cls = _DRIVER_ARRAY.get(driver)
     if array_cls is None:
         raise UnsupportedDriverError(driver)
@@ -94,7 +106,8 @@ def open_group(
 ) -> ZarrGroup:
     """Open a Zarr Group based on the specified driver."""
     if driver is None:
-        driver = next(iter(_DRIVER_GROUP))
+        driver = _get_default_driver()
+    _ensure_driver(driver)
     group_cls = _DRIVER_GROUP.get(driver)
     if group_cls is None:
         raise UnsupportedDriverError(driver)
@@ -103,6 +116,7 @@ def open_group(
 
 def from_config(out: Union[str, PathLike[str]], zarr_config: ZarrConfig) -> ZarrGroup:
     """Create a ZarrGroup from a ZarrConfig."""
+    _ensure_driver(zarr_config.driver)
     group_cls = _DRIVER_GROUP.get(zarr_config.driver)
     if group_cls is None:
         raise UnsupportedDriverError(zarr_config.driver)

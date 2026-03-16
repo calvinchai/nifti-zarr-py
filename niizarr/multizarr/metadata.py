@@ -5,15 +5,18 @@ This file contains code from the Zarr project
 https://github.com/zarr-developers/zarr-python
 """
 
+from __future__ import annotations
+
 import json
 import os
 import tempfile
 from dataclasses import dataclass, field, fields, replace
-from typing import Any, Literal, Self, Sequence
-
-from upath import UPath
+from typing import TYPE_CHECKING, Any, Literal, Self, Sequence
 
 from ._typing import JSON
+
+if TYPE_CHECKING:
+    from upath import UPath
 
 @dataclass(frozen=True)
 class Metadata:
