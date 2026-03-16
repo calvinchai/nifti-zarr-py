@@ -19,9 +19,14 @@ from typing import (
     Union,
 )
 
-import niizarr
 import numpy as np
+from dask import array as da
+from dask.diagnostics import ProgressBar
+from nibabel import Nifti1Header, Nifti2Header
+from numpy.typing import ArrayLike, DTypeLike
+
 from ._typing import TypeAlias, Unpack
+
 try:  # tqdm is optional; fall back to no-op progress if missing
     import tqdm  # type: ignore[import]
 except ImportError:  # pragma: no cover
@@ -30,18 +35,15 @@ except ImportError:  # pragma: no cover
         def tqdm(iterable=None, *args, **kwargs):
             return iterable if iterable is not None else range(0)
 
-    tqdm = _TqdmModule()  # type: ignore[assignment]
-from dask import array as da
-from dask.diagnostics import ProgressBar
-from nibabel import Nifti1Header, Nifti2Header
-from numpy.typing import ArrayLike, DTypeLike
 
+    tqdm = _TqdmModule()  # type: ignore[assignment]
 from .generate_pyramid import (
     compute_next_level,
     default_levels,
     next_level_shape,
 )
 from .zarr_config import ZarrConfig
+from niizarr._nii2zarr import write_ome_metadata, write_nifti_header
 
 NiftiHeader: TypeAlias = Union[Nifti1Header, Nifti2Header]
 
@@ -293,7 +295,7 @@ class ZarrGroup(ZarrNode):
         -------
         None.
         """
-        niizarr.write_ome_metadata(
+        write_ome_metadata(
             self,
             space_scale=space_scale,
             time_scale=time_scale,
@@ -310,4 +312,4 @@ class ZarrGroup(ZarrNode):
 
     def write_nifti_header(self, header: NiftiHeader) -> None:
         """Write a NIfTI header to the Zarr group."""
-        niizarr.write_nifti_header(self, header)
+        write_nifti_header(self, header)
