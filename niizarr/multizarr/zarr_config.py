@@ -2,7 +2,7 @@
 from dataclasses import field
 from typing import List, Literal, Optional, Union
 
-from ._typing import TypeAlias, dataclass
+from niizarr.multizarr._typing import TypeAlias, dataclass
 
 
 ZarrDriver: TypeAlias = Literal["zarr-python", "tensorstore", "zarrita"]

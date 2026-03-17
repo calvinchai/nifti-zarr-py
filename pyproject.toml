@@ -46,7 +46,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["niizarr"]
+packages = ["niizarr", "niizarr.multizarr"]
+
 
 [tool.versioningit]
 default-version = "0+unknown"
